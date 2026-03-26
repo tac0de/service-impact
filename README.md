@@ -69,10 +69,7 @@ echo '{
 ```
 
 More setup help:
-
-- [Real Repo Quickstart](docs/REAL_REPO_QUICKSTART.md)
-- [Replay Benchmark](docs/REPLAY_BENCHMARK.md)
-- [Real History Replay](docs/REAL_HISTORY_REPLAY.md)
+- see the sections below in this README
 
 ## What This Actually Helps With
 
