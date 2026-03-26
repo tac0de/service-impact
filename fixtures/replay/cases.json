@@ -1,0 +1,26 @@
+[
+  {
+    "id": "invoice-http-change",
+    "source_service": "billing-api",
+    "changed_paths": ["src/http/router.rs"],
+    "baseline_impacted_services": ["billing-api", "billing-worker", "billing-web", "analytics"],
+    "actual_impacted_services": ["billing-worker", "billing-web"],
+    "baseline_minutes": 11.0
+  },
+  {
+    "id": "invoice-event-change",
+    "source_service": "billing-api",
+    "changed_paths": ["src/events/publisher.rs"],
+    "baseline_impacted_services": ["billing-api", "billing-worker", "billing-web", "analytics"],
+    "actual_impacted_services": ["billing-worker"],
+    "baseline_minutes": 11.0
+  },
+  {
+    "id": "invoice-domain-change",
+    "source_service": "billing-api",
+    "changed_paths": ["src/invoice/mod.rs"],
+    "baseline_impacted_services": ["billing-api", "billing-worker", "billing-web", "analytics"],
+    "actual_impacted_services": ["billing-worker", "billing-web"],
+    "baseline_minutes": 11.0
+  }
+]

@@ -1,0 +1,79 @@
+{
+  "services": [
+    {
+      "service_id": "billing-api",
+      "provides": [
+        {
+          "kind": "http",
+          "name": "invoice",
+          "paths": ["src/invoice", "src/http"]
+        },
+        {
+          "kind": "event",
+          "name": "invoice-issued",
+          "paths": ["src/events"]
+        }
+      ],
+      "consumes": [],
+      "depends_on": [],
+      "verification_hooks": [
+        {
+          "name": "api-unit",
+          "trigger": "change",
+          "command": "cargo test -p billing-api"
+        }
+      ]
+    },
+    {
+      "service_id": "billing-worker",
+      "provides": [],
+      "consumes": [
+        {
+          "service_id": "billing-api",
+          "kind": "event",
+          "name": "invoice-issued"
+        }
+      ],
+      "depends_on": ["billing-api"],
+      "verification_hooks": [
+        {
+          "name": "worker-smoke",
+          "trigger": "impact",
+          "command": "cargo test -p billing-worker smoke"
+        }
+      ]
+    },
+    {
+      "service_id": "billing-web",
+      "provides": [],
+      "consumes": [
+        {
+          "service_id": "billing-api",
+          "kind": "http",
+          "name": "invoice"
+        }
+      ],
+      "depends_on": ["billing-api"],
+      "verification_hooks": [
+        {
+          "name": "web-e2e",
+          "trigger": "impact",
+          "command": "pnpm test:e2e"
+        }
+      ]
+    },
+    {
+      "service_id": "analytics",
+      "provides": [],
+      "consumes": [],
+      "depends_on": [],
+      "verification_hooks": [
+        {
+          "name": "analytics-unit",
+          "trigger": "change",
+          "command": "cargo test -p analytics"
+        }
+      ]
+    }
+  ]
+}

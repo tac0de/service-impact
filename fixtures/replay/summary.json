@@ -1,0 +1,9 @@
+{
+  "corpus_size": 3,
+  "missed_impacted_services": 0,
+  "false_positive_services": 1,
+  "median_scope_reduction_percent": 50.0,
+  "median_ci_minutes_saved": 5.5,
+  "p50_analysis_latency_ms": 0.0025840000000000004,
+  "p95_analysis_latency_ms": 0.0465
+}
