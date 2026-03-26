@@ -25,6 +25,8 @@ changed files -> impacted services -> required checks only
 
 ![service-impact demo](assets/service-impact-demo.gif)
 
+Instead of rerunning broad default CI scope, it helps you narrow to the smallest reasonable set of services and checks.
+
 Good fit:
 
 - platform teams
