@@ -47,3 +47,30 @@ fn validate_command_runs() {
         String::from_utf8_lossy(&output.stderr)
     );
 }
+
+#[test]
+fn validate_can_fail_on_warnings() {
+    use std::io::Write;
+
+    let mut child = Command::new("cargo")
+        .arg("run")
+        .arg("--bin")
+        .arg("service-impact")
+        .arg("--")
+        .arg("validate")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("validate should spawn");
+
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin should be available")
+        .write_all(br#"{"registry_path":"fixtures/sample/registry.json","fail_on_warnings":true}"#)
+        .expect("stdin write should succeed");
+
+    let output = child.wait_with_output().expect("process should complete");
+    assert!(!output.status.success(), "process should fail on warnings");
+}

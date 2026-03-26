@@ -156,6 +156,12 @@ Validate the sample registry:
 echo '{"registry_path":"fixtures/sample/registry.json"}' | cargo run --bin service-impact -- validate
 ```
 
+Fail CI when warnings should be treated as errors:
+
+```bash
+echo '{"registry_path":"fixtures/sample/registry.json","fail_on_warnings":true}' | cargo run --bin service-impact -- validate
+```
+
 ## How It Works
 
 You describe your system in a manifest:
@@ -195,7 +201,7 @@ Impact query:
 echo '{
   "registry_path": "fixtures/sample/registry.json",
   "service_id": "billing-api",
-  "changed_paths": ["src/http/router.rs"]
+  "changed_paths": ["src/http/router.rs"],
   "mode": "conservative"
 }' | cargo run --bin service-impact -- impact
 ```
@@ -206,7 +212,7 @@ Verification plan:
 echo '{
   "registry_path": "fixtures/sample/registry.json",
   "service_id": "billing-api",
-  "changed_paths": ["src/events/publisher.rs"]
+  "changed_paths": ["src/events/publisher.rs"],
   "mode": "strict"
 }' | cargo run --bin service-impact -- plan
 ```
@@ -369,6 +375,14 @@ Recommended next step for a real team:
 4. replay both `strict` and `conservative` mode
 5. compare misses before promoting the tool into CI gating
 
+Export a replay seed from actual git history:
+
+```bash
+cargo run --bin git-history-export -- /path/to/your/repo 20 > replay_seed.json
+```
+
+This exports real commits and changed paths, then leaves the impact labels for you to fill in.
+
 If you want a real benchmark for your own repo, replace the sample replay corpus with:
 
 - actual changed paths from past PRs or commits
@@ -434,6 +448,13 @@ Minimal steps for an existing repo:
 3. run `validate` on the registry
 4. feed changed paths from git diff or CI
 5. use the impact output to decide which checks to run
+
+If you want to build a real replay corpus from your history:
+
+1. export commit history with `git-history-export`
+2. convert those commits into replay cases
+3. fill actual impacted services from your own review or incident history
+4. run `replay-bench`
 
 Minimal registry sketch:
 

@@ -23,6 +23,12 @@ The goal is to show whether scoped verification is smaller while still not missi
 cargo run --bin replay-bench -- fixtures/sample/registry.json fixtures/replay/cases.json
 ```
 
+Export a real-history seed from another repo:
+
+```bash
+cargo run --bin git-history-export -- /path/to/your/repo 20 > replay_seed.json
+```
+
 ## Metrics
 
 - `missed_impacted_services`: services that should have been included but were not
@@ -43,3 +49,13 @@ Replace the sample corpus with replay cases from your own history:
 - baseline minutes
 
 This is the intended path for producing believable public numbers.
+
+## Why the repo still ships a sample corpus
+
+At the moment, the public repo does not yet include a 20-50 case production replay corpus.
+
+That is intentional:
+
+- a fake "real" corpus would be misleading
+- a small sample corpus is better than invented claims
+- `git-history-export` is the bridge toward a credible dataset

@@ -23,6 +23,10 @@ path = "src/bin/service-impact.rs"
 name = "replay-bench"
 path = "src/bin/replay-bench.rs"
 
+[[bin]]
+name = "git-history-export"
+path = "src/bin/git-history-export.rs"
+
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

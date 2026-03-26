@@ -18,7 +18,17 @@ fn main() -> Result<()> {
     let registry = Registry::load(registry_path)?;
     let mode = parse_mode(payload.get("mode").and_then(Value::as_str))?;
     let output = match command.as_str() {
-        "validate" => serde_json::to_value(validate_registry(&registry))?,
+        "validate" => {
+            let report = validate_registry(&registry);
+            let fail_on_warnings = payload
+                .get("fail_on_warnings")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
+            if !report.valid || (fail_on_warnings && !report.warnings.is_empty()) {
+                anyhow::bail!("{}", serde_json::to_string_pretty(&report)?);
+            }
+            serde_json::to_value(report)?
+        }
         "impact" | "plan" => {
             let engine = ImpactEngine::from_registry(registry)?;
             let service_id = payload

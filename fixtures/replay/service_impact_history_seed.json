@@ -1,0 +1,114 @@
+{
+  "repo_path": "/Users/wonyoung_choi/projects/service-impact",
+  "branch": "main",
+  "commit_count": 3,
+  "commits": [
+    {
+      "commit": "b1b56166310e540857209c24228bf2a12244f470",
+      "subject": "Add validation and CI-oriented workflows",
+      "changed_paths": [
+        "README.md",
+        "docs/REAL_REPO_QUICKSTART.md",
+        "fixtures/replay/cases.json",
+        "fixtures/replay/summary.json",
+        "src/bin/replay-bench.rs",
+        "src/bin/service-impact.rs",
+        "src/lib.rs",
+        "tests/cli_smoke.rs"
+      ],
+      "replay_case_template": {
+        "id": "b1b56166",
+        "source_service": "fill-me",
+        "changed_paths": [
+          "README.md",
+          "docs/REAL_REPO_QUICKSTART.md",
+          "fixtures/replay/cases.json",
+          "fixtures/replay/summary.json",
+          "src/bin/replay-bench.rs",
+          "src/bin/service-impact.rs",
+          "src/lib.rs",
+          "tests/cli_smoke.rs"
+        ],
+        "baseline_impacted_services": [],
+        "actual_impacted_services": [],
+        "baseline_minutes": 0.0,
+        "baseline_strategy": "fill-me",
+        "notes": "Fill labels for commit: Add validation and CI-oriented workflows"
+      }
+    },
+    {
+      "commit": "0999fb6ef60fa89d9c8ec28190c184362c057c9d",
+      "subject": "Improve developer documentation",
+      "changed_paths": [
+        "README.md",
+        "docs/REPLAY_BENCHMARK.md",
+        "docs/USE_CASES.md"
+      ],
+      "replay_case_template": {
+        "id": "0999fb6e",
+        "source_service": "fill-me",
+        "changed_paths": [
+          "README.md",
+          "docs/REPLAY_BENCHMARK.md",
+          "docs/USE_CASES.md"
+        ],
+        "baseline_impacted_services": [],
+        "actual_impacted_services": [],
+        "baseline_minutes": 0.0,
+        "baseline_strategy": "fill-me",
+        "notes": "Fill labels for commit: Improve developer documentation"
+      }
+    },
+    {
+      "commit": "115be59d872379e3b9e4959fda82af5d87cf057e",
+      "subject": "Initial public release",
+      "changed_paths": [
+        ".github/workflows/ci.yml",
+        ".gitignore",
+        "CONTRIBUTING.md",
+        "Cargo.lock",
+        "Cargo.toml",
+        "LICENSE",
+        "README.md",
+        "RELEASE_CHECKLIST.md",
+        "SECURITY.md",
+        "examples/basic.rs",
+        "fixtures/replay/cases.json",
+        "fixtures/replay/summary.json",
+        "fixtures/sample/registry.json",
+        "src/bin/replay-bench.rs",
+        "src/bin/service-impact.rs",
+        "src/lib.rs",
+        "tests/cli_smoke.rs"
+      ],
+      "replay_case_template": {
+        "id": "115be59d",
+        "source_service": "fill-me",
+        "changed_paths": [
+          ".github/workflows/ci.yml",
+          ".gitignore",
+          "CONTRIBUTING.md",
+          "Cargo.lock",
+          "Cargo.toml",
+          "LICENSE",
+          "README.md",
+          "RELEASE_CHECKLIST.md",
+          "SECURITY.md",
+          "examples/basic.rs",
+          "fixtures/replay/cases.json",
+          "fixtures/replay/summary.json",
+          "fixtures/sample/registry.json",
+          "src/bin/replay-bench.rs",
+          "src/bin/service-impact.rs",
+          "src/lib.rs",
+          "tests/cli_smoke.rs"
+        ],
+        "baseline_impacted_services": [],
+        "actual_impacted_services": [],
+        "baseline_minutes": 0.0,
+        "baseline_strategy": "fill-me",
+        "notes": "Fill labels for commit: Initial public release"
+      }
+    }
+  ]
+}
