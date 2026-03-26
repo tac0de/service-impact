@@ -23,6 +23,8 @@ You get:
 changed files -> impacted services -> required checks only
 ```
 
+![service-impact demo](assets/service-impact-demo.gif)
+
 Good fit:
 
 - platform teams
