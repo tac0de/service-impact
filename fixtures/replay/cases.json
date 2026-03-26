@@ -5,7 +5,9 @@
     "changed_paths": ["src/http/router.rs"],
     "baseline_impacted_services": ["billing-api", "billing-worker", "billing-web", "analytics"],
     "actual_impacted_services": ["billing-worker", "billing-web"],
-    "baseline_minutes": 11.0
+    "baseline_minutes": 11.0,
+    "baseline_strategy": "full verification",
+    "notes": "HTTP surface changed, downstream API and worker consumers should be reconsidered."
   },
   {
     "id": "invoice-event-change",
@@ -13,7 +15,9 @@
     "changed_paths": ["src/events/publisher.rs"],
     "baseline_impacted_services": ["billing-api", "billing-worker", "billing-web", "analytics"],
     "actual_impacted_services": ["billing-worker"],
-    "baseline_minutes": 11.0
+    "baseline_minutes": 11.0,
+    "baseline_strategy": "full verification",
+    "notes": "Event publisher changed. Worker should rerun, web is a conservative false positive."
   },
   {
     "id": "invoice-domain-change",
@@ -21,6 +25,8 @@
     "changed_paths": ["src/invoice/mod.rs"],
     "baseline_impacted_services": ["billing-api", "billing-worker", "billing-web", "analytics"],
     "actual_impacted_services": ["billing-worker", "billing-web"],
-    "baseline_minutes": 11.0
+    "baseline_minutes": 11.0,
+    "baseline_strategy": "full verification",
+    "notes": "Domain logic change propagates to both downstream services."
   }
 ]

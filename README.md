@@ -105,6 +105,30 @@ If you want to use it as a library before crates.io publishing, use a git depend
 service-impact = { git = "https://github.com/tac0de/service-impact" }
 ```
 
+## Reliability
+
+`service-impact` is designed to become trustworthy, but it should not be oversold today.
+
+What increases trust:
+
+- manifests are explicit and reviewable
+- outputs include impact reasons
+- replay benchmarks are reproducible
+- registry validation can catch broken metadata before analysis
+
+What still limits trust:
+
+- hidden runtime dependencies are not inferred automatically
+- stale manifests create stale results
+- current checked-in benchmark is still a sample corpus, not a large production replay set
+
+The intended reliability path is:
+
+1. validate manifests
+2. replay against real project history
+3. keep missed impacted services at or near zero
+4. tune false positives with analysis mode
+
 ## Quickstart
 
 ```rust
@@ -124,6 +148,12 @@ Run the example:
 
 ```bash
 cargo run --example basic
+```
+
+Validate the sample registry:
+
+```bash
+echo '{"registry_path":"fixtures/sample/registry.json"}' | cargo run --bin service-impact -- validate
 ```
 
 ## How It Works
@@ -149,6 +179,14 @@ and computes:
 - why each service is impacted
 - which verification hooks are worth running
 
+You can choose an analysis mode:
+
+- `strict`: only capability-consume matches
+- `conservative`: capability-consume matches plus declared `depends_on`
+
+`strict` reduces false positives.
+`conservative` is safer when your capability metadata is still incomplete.
+
 ## CLI
 
 Impact query:
@@ -158,6 +196,7 @@ echo '{
   "registry_path": "fixtures/sample/registry.json",
   "service_id": "billing-api",
   "changed_paths": ["src/http/router.rs"]
+  "mode": "conservative"
 }' | cargo run --bin service-impact -- impact
 ```
 
@@ -168,7 +207,29 @@ echo '{
   "registry_path": "fixtures/sample/registry.json",
   "service_id": "billing-api",
   "changed_paths": ["src/events/publisher.rs"]
+  "mode": "strict"
 }' | cargo run --bin service-impact -- plan
+```
+
+Use changed paths from a file:
+
+```bash
+echo "src/http/router.rs" > changed_paths.txt
+echo '{
+  "registry_path": "fixtures/sample/registry.json",
+  "service_id": "billing-api",
+  "changed_paths_file": "changed_paths.txt"
+}' | cargo run --bin service-impact -- impact
+```
+
+Use changed paths from git diff:
+
+```bash
+echo '{
+  "registry_path": "fixtures/sample/registry.json",
+  "service_id": "billing-api",
+  "git_diff_range": "HEAD~1..HEAD"
+}' | cargo run --bin service-impact -- impact
 ```
 
 Example output fields:
@@ -177,6 +238,7 @@ Example output fields:
 - `impacted_services`: downstream services that should be reconsidered
 - `reasons`: why each service was selected
 - `verification_hooks`: checks attached to those impacted services
+- `summary`: quick human-readable result summary
 
 ## Library Usage
 
@@ -266,6 +328,8 @@ Candidate B:
 
 - manifest-driven impact analysis with `service-impact`
 
+Current checked-in benchmark is still a sample corpus intended to show the workflow, not a final production claim.
+
 Replay the sample corpus:
 
 ```bash
@@ -297,6 +361,14 @@ What the A/B comparison is measuring:
 - median CI minutes saved
 - analysis latency
 
+Recommended next step for a real team:
+
+1. export changed paths from 20-50 historical PRs
+2. define your current baseline verification scope
+3. mark actual impacted services
+4. replay both `strict` and `conservative` mode
+5. compare misses before promoting the tool into CI gating
+
 If you want a real benchmark for your own repo, replace the sample replay corpus with:
 
 - actual changed paths from past PRs or commits
@@ -313,6 +385,22 @@ Instead of always running everything:
 - read changed files from git or CI
 - ask `service-impact` which services are affected
 - run only the hooks attached to those services
+
+### 1a. GitHub Actions style flow
+
+```yaml
+- name: Collect changed paths
+  run: git diff --name-only origin/main...HEAD > changed_paths.txt
+
+- name: Compute impact
+  run: |
+    echo '{
+      "registry_path": "registry.json",
+      "service_id": "billing-api",
+      "changed_paths_file": "changed_paths.txt",
+      "mode": "conservative"
+    }' | cargo run --bin service-impact -- impact
+```
 
 ### 2. PR impact preview
 
@@ -334,6 +422,49 @@ Use the manifest as a queryable map of:
 ### 4. Migration away from path-glob CI
 
 If your current CI logic is mostly hand-written path matching, `service-impact` can become the typed layer that explains those relationships explicitly.
+
+## Real Repo Quickstart
+
+You do not need `trace-hub`.
+
+Minimal steps for an existing repo:
+
+1. create a registry file like [fixtures/sample/registry.json](fixtures/sample/registry.json)
+2. define services, capabilities, and verification hooks
+3. run `validate` on the registry
+4. feed changed paths from git diff or CI
+5. use the impact output to decide which checks to run
+
+Minimal registry sketch:
+
+```json
+{
+  "services": [
+    {
+      "service_id": "api",
+      "provides": [
+        { "kind": "http", "name": "orders", "paths": ["services/api/src/orders"] }
+      ],
+      "consumes": [],
+      "depends_on": [],
+      "verification_hooks": [
+        { "name": "api-test", "trigger": "impact", "command": "cargo test -p api" }
+      ]
+    },
+    {
+      "service_id": "worker",
+      "provides": [],
+      "consumes": [
+        { "service_id": "api", "kind": "http", "name": "orders" }
+      ],
+      "depends_on": ["api"],
+      "verification_hooks": [
+        { "name": "worker-test", "trigger": "impact", "command": "cargo test -p worker" }
+      ]
+    }
+  ]
+}
+```
 
 ## Manifest Format
 
@@ -375,6 +506,7 @@ It does not:
 - inspect source code for hidden edges
 - mutate CI configuration
 - decide release policy for you
+- guarantee correctness without validated manifests and replay testing
 
 ## Good Fit
 
@@ -397,6 +529,9 @@ It does not:
 - CLI
 - replay benchmark harness
 - sample fixtures and examples
+- registry validation
+- strict and conservative analysis modes
+- git diff and changed-path file input support
 
 ## License
 

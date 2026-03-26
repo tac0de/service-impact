@@ -1,9 +1,11 @@
 {
+  "mode": "conservative",
   "corpus_size": 3,
   "missed_impacted_services": 0,
   "false_positive_services": 1,
   "median_scope_reduction_percent": 50.0,
   "median_ci_minutes_saved": 5.5,
-  "p50_analysis_latency_ms": 0.0025840000000000004,
-  "p95_analysis_latency_ms": 0.0465
+  "p50_analysis_latency_ms": 0.008583,
+  "p95_analysis_latency_ms": 0.033125,
+  "summary": "Replay finished in Conservative mode with 0 missed service(s), 1 false positive service(s), and 50.0% median scope reduction"
 }
