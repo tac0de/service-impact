@@ -1,11 +1,11 @@
 # service-impact
 
-> Compute which services and checks are actually affected by a code change.
+> For multi-service repos that over-run CI because impact scope is fuzzy.
 
 [![CI](https://github.com/tac0de/service-impact/actions/workflows/ci.yml/badge.svg)](https://github.com/tac0de/service-impact/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`service-impact` turns service manifests plus changed paths into:
+`service-impact` is a standalone Rust library and CLI that turns service manifests plus changed paths into:
 
 - impacted services
 - verification hooks to run
@@ -22,6 +22,57 @@ You get:
 ```text
 changed files -> impacted services -> required checks only
 ```
+
+Good fit:
+
+- platform teams
+- multi-service repos
+- CI pipelines that run too much by default
+- teams replacing brittle path-glob rules
+
+Not trying to be:
+
+- a CI orchestrator
+- a build system
+- a runtime dependency discovery engine
+
+## Try It On Your Repo In 5 Minutes
+
+1. Clone the repo and run the sample validator.
+
+```bash
+git clone https://github.com/tac0de/service-impact.git
+cd service-impact
+cargo test
+echo '{"registry_path":"fixtures/sample/registry.json"}' | cargo run --bin service-impact -- validate
+```
+
+2. Point it at your own registry and changed paths.
+
+```bash
+git diff --name-only origin/main...HEAD > changed_paths.txt
+echo '{
+  "registry_path": "registry.json",
+  "service_id": "api",
+  "changed_paths_file": "changed_paths.txt",
+  "mode": "conservative"
+}' | cargo run --bin service-impact -- impact
+```
+
+3. If you want CI-style validation, fail on warnings too.
+
+```bash
+echo '{
+  "registry_path": "registry.json",
+  "fail_on_warnings": true
+}' | cargo run --bin service-impact -- validate
+```
+
+More setup help:
+
+- [Real Repo Quickstart](docs/REAL_REPO_QUICKSTART.md)
+- [Replay Benchmark](docs/REPLAY_BENCHMARK.md)
+- [Real History Replay](docs/REAL_HISTORY_REPLAY.md)
 
 ## What This Actually Helps With
 
@@ -70,8 +121,6 @@ It is a good fit for:
 | Replayable benchmark output | Rare | Yes |
 
 ## Install
-
-`service-impact` is on GitHub now. If you want to try it immediately:
 
 Clone the repo:
 
@@ -128,6 +177,12 @@ The intended reliability path is:
 2. replay against real project history
 3. keep missed impacted services at or near zero
 4. tune false positives with analysis mode
+
+Current public evidence level:
+
+- checked-in benchmark is still a sample corpus
+- real-history replay export tooling is included
+- the repo does not yet claim a large production replay set
 
 ## Quickstart
 
@@ -534,13 +589,6 @@ It does not:
 - explicit service manifests already exist
 - teams want a deterministic answer for impact scope
 - verification hooks can be attached to services
-
-## Not Trying To Be
-
-- a full CI orchestrator
-- a build system
-- a runtime service catalog
-- a policy engine
 
 ## Status
 
