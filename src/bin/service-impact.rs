@@ -1,51 +1,65 @@
 use anyhow::{Context, Result};
-use serde_json::Value;
+use serde::Deserialize;
 use service_impact::{validate_registry, AnalysisMode, ImpactEngine, Registry};
 use std::env;
 use std::fs;
 use std::io::{self, Read};
 use std::process::Command;
 
+#[derive(Debug, Deserialize)]
+struct ValidateRequest {
+    #[serde(default = "default_registry_path")]
+    registry_path: String,
+    #[serde(default)]
+    fail_on_warnings: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ImpactRequest {
+    #[serde(default = "default_registry_path")]
+    registry_path: String,
+    service_id: String,
+    #[serde(default)]
+    mode: AnalysisMode,
+    #[serde(default)]
+    changed_paths: Vec<String>,
+    changed_paths_file: Option<String>,
+    git_diff_range: Option<String>,
+    git_diff_from: Option<String>,
+    git_diff_to: Option<String>,
+}
+
 fn main() -> Result<()> {
     let command = env::args().nth(1).context("missing subcommand")?;
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
-    let payload: Value = serde_json::from_str(&input).context("stdin must be valid json")?;
-    let registry_path = payload
-        .get("registry_path")
-        .and_then(Value::as_str)
-        .unwrap_or("fixtures/sample/registry.json");
-    let registry = Registry::load(registry_path)?;
-    let mode = parse_mode(payload.get("mode").and_then(Value::as_str))?;
     let output = match command.as_str() {
         "validate" => {
+            let request: ValidateRequest =
+                serde_json::from_str(&input).context("stdin must be valid json")?;
+            let registry = Registry::load(&request.registry_path)?;
             let report = validate_registry(&registry);
-            let fail_on_warnings = payload
-                .get("fail_on_warnings")
-                .and_then(Value::as_bool)
-                .unwrap_or(false);
-            if !report.valid || (fail_on_warnings && !report.warnings.is_empty()) {
+            if !report.valid || (request.fail_on_warnings && !report.warnings.is_empty()) {
                 anyhow::bail!("{}", serde_json::to_string_pretty(&report)?);
             }
             serde_json::to_value(report)?
         }
         "impact" | "plan" => {
+            let request: ImpactRequest =
+                serde_json::from_str(&input).context("stdin must be valid json")?;
+            let registry = Registry::load(&request.registry_path)?;
             let engine = ImpactEngine::from_registry(registry)?;
-            let service_id = payload
-                .get("service_id")
-                .and_then(Value::as_str)
-                .context("service_id is required")?;
-            let changed_paths = load_changed_paths(&payload)?;
+            let changed_paths = load_changed_paths(&request)?;
             match command.as_str() {
                 "impact" => serde_json::to_value(engine.impacted_services_with_mode(
-                    service_id,
+                    &request.service_id,
                     &changed_paths,
-                    mode,
+                    request.mode,
                 )?)?,
                 "plan" => serde_json::to_value(engine.verification_plan_with_mode(
-                    service_id,
+                    &request.service_id,
                     &changed_paths,
-                    mode,
+                    request.mode,
                 )?)?,
                 _ => unreachable!(),
             }
@@ -56,23 +70,15 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse_mode(value: Option<&str>) -> Result<AnalysisMode> {
-    match value.unwrap_or("conservative") {
-        "conservative" => Ok(AnalysisMode::Conservative),
-        "strict" => Ok(AnalysisMode::Strict),
-        other => anyhow::bail!("unsupported mode: {}", other),
-    }
+fn default_registry_path() -> String {
+    "fixtures/sample/registry.json".to_string()
 }
 
-fn load_changed_paths(payload: &Value) -> Result<Vec<String>> {
-    if let Some(items) = payload.get("changed_paths").and_then(Value::as_array) {
-        return Ok(items
-            .iter()
-            .filter_map(Value::as_str)
-            .map(str::to_string)
-            .collect());
+fn load_changed_paths(request: &ImpactRequest) -> Result<Vec<String>> {
+    if !request.changed_paths.is_empty() {
+        return Ok(request.changed_paths.clone());
     }
-    if let Some(path) = payload.get("changed_paths_file").and_then(Value::as_str) {
+    if let Some(path) = &request.changed_paths_file {
         return Ok(fs::read_to_string(path)?
             .lines()
             .map(str::trim)
@@ -80,13 +86,11 @@ fn load_changed_paths(payload: &Value) -> Result<Vec<String>> {
             .map(str::to_string)
             .collect());
     }
-    if let Some(range) = payload.get("git_diff_range").and_then(Value::as_str) {
-        return git_diff_paths(&[range]);
+    if let Some(range) = &request.git_diff_range {
+        return git_diff_paths(&[range.as_str()]);
     }
-    let from = payload.get("git_diff_from").and_then(Value::as_str);
-    let to = payload.get("git_diff_to").and_then(Value::as_str);
-    if let (Some(from), Some(to)) = (from, to) {
-        return git_diff_paths(&[from, to]);
+    if let (Some(from), Some(to)) = (&request.git_diff_from, &request.git_diff_to) {
+        return git_diff_paths(&[from.as_str(), to.as_str()]);
     }
     Ok(Vec::new())
 }

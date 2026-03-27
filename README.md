@@ -1,11 +1,11 @@
 # service-impact
 
-> For multi-service repos that over-run CI because impact scope is fuzzy.
+> A small rules-based Rust tool for narrowing CI scope in multi-service repos.
 
 [![CI](https://github.com/tac0de/service-impact/actions/workflows/ci.yml/badge.svg)](https://github.com/tac0de/service-impact/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`service-impact` is a standalone Rust library and CLI that turns service manifests plus changed paths into:
+`service-impact` is a standalone Rust library and CLI that uses explicit manifest rules plus changed paths to produce:
 
 - impacted services
 - verification hooks to run
@@ -27,11 +27,12 @@ changed files -> impacted services -> required checks only
 
 Instead of rerunning broad default CI scope, it helps you narrow to the smallest reasonable set of services and checks.
 
-Early release:
+Early release, current scope:
 
 - sample replay benchmark included
 - real-history replay export included
 - larger production replay corpus is still the next step
+- impact matching is currently prefix-based and exact-name based
 
 Three-line usage:
 
@@ -103,7 +104,7 @@ If you have multiple services, packages, or deployable units, you usually hit on
 - path globs are too rough
 - teams know dependencies exist, but cannot query them cleanly
 
-`service-impact` helps you answer:
+`service-impact` helps you answer, in a rules-based way:
 
 - "Which services are affected by this change?"
 - "Which checks should run now?"
@@ -130,7 +131,7 @@ It is a good fit for:
 - platform teams maintaining service manifests
 - CI pipelines trying to cut unnecessary verification without guessing
 
-## What Makes It Different
+## What It Does Today
 
 | Capability | Path globs / ad hoc CI | `service-impact` |
 | --- | --- | --- |
@@ -189,7 +190,7 @@ service-impact = { git = "https://github.com/tac0de/service-impact" }
 
 ## Reliability
 
-`service-impact` is designed to become trustworthy, but it should not be oversold today.
+`service-impact` is intentionally small today, and it should not be oversold.
 
 What increases trust:
 
@@ -203,6 +204,8 @@ What still limits trust:
 - hidden runtime dependencies are not inferred automatically
 - stale manifests create stale results
 - current checked-in benchmark is still a sample corpus, not a large production replay set
+- path matching is currently normalized prefix matching, not deeper path semantics
+- capability matching is exact string matching
 
 The intended reliability path is:
 
