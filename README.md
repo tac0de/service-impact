@@ -47,6 +47,10 @@ Output choices:
 - default: human-friendly summaries
 - optional: `--format json` for automation
 
+```bash
+cargo run --bin service-impact -- impact --registry registry.json --service api --changed-paths-file changed_paths.txt --mode conservative --format json
+```
+
 Install choices:
 
 - no Rust: download a prebuilt binary from [Releases](https://github.com/tac0de/service-impact/releases)
