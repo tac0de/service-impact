@@ -42,6 +42,16 @@ cargo run --bin service-impact -- impact --registry registry.json --service api 
 cargo run --bin service-impact -- plan --registry registry.json --service api --changed-paths-file changed_paths.txt --mode strict
 ```
 
+Output choices:
+
+- default: human-friendly summaries
+- optional: `--format json` for automation
+
+Install choices:
+
+- no Rust: download a prebuilt binary from [Releases](https://github.com/tac0de/service-impact/releases)
+- with Rust: `cargo install --path .`
+
 Good fit:
 
 - platform teams
