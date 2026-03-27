@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Existing release tag to upload assets to"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -39,6 +44,14 @@ jobs:
         if: runner.os == 'Windows'
         run: powershell -Command "Compress-Archive -Path target/release/service-impact.exe -DestinationPath ${{ matrix.asset_name }}.${{ matrix.archive_ext }}"
       - name: Upload release asset
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ matrix.asset_name }}.${{ matrix.archive_ext }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG_NAME="${GITHUB_REF_NAME}"
+          else
+            TAG_NAME="${INPUT_TAG_NAME}"
+          fi
+          gh release upload "${TAG_NAME}" "${{ matrix.asset_name }}.${{ matrix.archive_ext }}" --repo "${GITHUB_REPOSITORY}" --clobber
