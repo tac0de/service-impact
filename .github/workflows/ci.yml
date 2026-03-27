@@ -17,4 +17,4 @@ jobs:
       - name: Test
         run: cargo test
       - name: Replay benchmark
-        run: cargo run --bin replay-bench -- fixtures/sample/registry.json fixtures/replay/cases.json
+        run: cargo run --bin replay-bench -- --registry fixtures/sample/registry.json --replay fixtures/replay/cases.json

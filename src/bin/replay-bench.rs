@@ -1,28 +1,42 @@
 use anyhow::Result;
+use clap::{Parser, ValueEnum};
 use service_impact::{load_replay_cases, run_replay, AnalysisMode, ImpactEngine, Registry};
-use std::env;
+use std::path::PathBuf;
+
+#[derive(Debug, Parser)]
+#[command(name = "replay-bench")]
+#[command(about = "Replay historical impact cases against the current rules engine")]
+struct Cli {
+    #[arg(long, default_value = "fixtures/sample/registry.json")]
+    registry: PathBuf,
+    #[arg(long, default_value = "fixtures/replay/cases.json")]
+    replay: PathBuf,
+    #[arg(long, default_value_t = 2.75)]
+    hook_cost_minutes: f64,
+    #[arg(long, value_enum, default_value_t = ModeArg::Conservative)]
+    mode: ModeArg,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum ModeArg {
+    Strict,
+    Conservative,
+}
+
+impl From<ModeArg> for AnalysisMode {
+    fn from(value: ModeArg) -> Self {
+        match value {
+            ModeArg::Strict => AnalysisMode::Strict,
+            ModeArg::Conservative => AnalysisMode::Conservative,
+        }
+    }
+}
 
 fn main() -> Result<()> {
-    let args = env::args().collect::<Vec<_>>();
-    let registry_path = args
-        .get(1)
-        .map(String::as_str)
-        .unwrap_or("fixtures/sample/registry.json");
-    let replay_path = args
-        .get(2)
-        .map(String::as_str)
-        .unwrap_or("fixtures/replay/cases.json");
-    let hook_cost_minutes = args
-        .get(3)
-        .and_then(|value| value.parse::<f64>().ok())
-        .unwrap_or(2.75);
-    let mode = match args.get(4).map(String::as_str).unwrap_or("conservative") {
-        "strict" => AnalysisMode::Strict,
-        _ => AnalysisMode::Conservative,
-    };
-    let engine = ImpactEngine::from_registry(Registry::load(registry_path)?)?;
-    let cases = load_replay_cases(replay_path)?;
-    let summary = run_replay(&engine, &cases, hook_cost_minutes, mode)?;
+    let cli = Cli::parse();
+    let engine = ImpactEngine::from_registry(Registry::load(&cli.registry)?)?;
+    let cases = load_replay_cases(&cli.replay)?;
+    let summary = run_replay(&engine, &cases, cli.hook_cost_minutes, cli.mode.into())?;
     println!("{}", serde_json::to_string_pretty(&summary)?);
     Ok(())
 }

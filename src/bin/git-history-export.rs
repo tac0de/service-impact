@@ -1,8 +1,18 @@
 use anyhow::{Context, Result};
+use clap::Parser;
 use serde::Serialize;
-use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+
+#[derive(Debug, Parser)]
+#[command(name = "git-history-export")]
+#[command(about = "Export git history into replay-case templates")]
+struct Cli {
+    #[arg(default_value = ".")]
+    repo: PathBuf,
+    #[arg(default_value_t = 20)]
+    max_count: usize,
+}
 
 #[derive(Debug, Serialize)]
 struct HistorySeed {
@@ -33,19 +43,15 @@ struct ReplayCaseTemplate {
 }
 
 fn main() -> Result<()> {
-    let args = env::args().collect::<Vec<_>>();
-    let repo_path = args.get(1).map(String::as_str).unwrap_or(".");
-    let max_count = args
-        .get(2)
-        .and_then(|value| value.parse::<usize>().ok())
-        .unwrap_or(20);
-    let branch = current_branch(repo_path)?;
+    let cli = Cli::parse();
+    let repo_path = cli.repo;
+    let branch = current_branch(&repo_path)?;
     let commit_lines = git(
-        repo_path,
+        &repo_path,
         &[
             "log",
             "--format=%H\t%s",
-            &format!("--max-count={}", max_count),
+            &format!("--max-count={}", cli.max_count),
         ],
     )?;
     let mut commits = Vec::new();
@@ -55,7 +61,7 @@ fn main() -> Result<()> {
             continue;
         };
         let changed_paths = git(
-            repo_path,
+            &repo_path,
             &["show", "--pretty=format:", "--name-only", commit],
         )?
         .lines()
@@ -81,7 +87,7 @@ fn main() -> Result<()> {
     }
 
     let seed = HistorySeed {
-        repo_path: Path::new(repo_path).canonicalize()?.display().to_string(),
+        repo_path: repo_path.canonicalize()?.display().to_string(),
         branch,
         commit_count: commits.len(),
         commits,
@@ -91,13 +97,13 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn current_branch(repo_path: &str) -> Result<String> {
+fn current_branch(repo_path: &Path) -> Result<String> {
     Ok(git(repo_path, &["branch", "--show-current"])?
         .trim()
         .to_string())
 }
 
-fn git(repo_path: &str, args: &[&str]) -> Result<String> {
+fn git(repo_path: &Path, args: &[&str]) -> Result<String> {
     let output = Command::new("git")
         .args(args)
         .current_dir(repo_path)

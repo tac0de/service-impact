@@ -1,0 +1,39 @@
+name: release-binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name: service-impact-linux-x86_64
+            archive_ext: tar.gz
+          - os: macos-latest
+            asset_name: service-impact-macos
+            archive_ext: tar.gz
+          - os: windows-latest
+            asset_name: service-impact-windows-x86_64
+            archive_ext: zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build binary
+        run: cargo build --release --bin service-impact
+      - name: Package archive (unix)
+        if: runner.os != 'Windows'
+        run: tar -czf ${{ matrix.asset_name }}.${{ matrix.archive_ext }} -C target/release service-impact
+      - name: Package archive (windows)
+        if: runner.os == 'Windows'
+        run: powershell -Command "Compress-Archive -Path target/release/service-impact.exe -DestinationPath ${{ matrix.asset_name }}.${{ matrix.archive_ext }}"
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}.${{ matrix.archive_ext }}

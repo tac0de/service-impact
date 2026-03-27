@@ -19,28 +19,18 @@ fn example_runs() {
 
 #[test]
 fn validate_command_runs() {
-    use std::io::Write;
-
-    let mut child = Command::new("cargo")
+    let output = Command::new("cargo")
         .arg("run")
         .arg("--bin")
         .arg("service-impact")
         .arg("--")
         .arg("validate")
-        .stdin(Stdio::piped())
+        .arg("--registry")
+        .arg("fixtures/sample/registry.json")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()
-        .expect("validate should spawn");
-
-    child
-        .stdin
-        .as_mut()
-        .expect("stdin should be available")
-        .write_all(br#"{"registry_path":"fixtures/sample/registry.json"}"#)
-        .expect("stdin write should succeed");
-
-    let output = child.wait_with_output().expect("process should complete");
+        .output()
+        .expect("validate should run");
     assert!(
         output.status.success(),
         "stderr: {}",
@@ -50,27 +40,18 @@ fn validate_command_runs() {
 
 #[test]
 fn validate_can_fail_on_warnings() {
-    use std::io::Write;
-
-    let mut child = Command::new("cargo")
+    let output = Command::new("cargo")
         .arg("run")
         .arg("--bin")
         .arg("service-impact")
         .arg("--")
         .arg("validate")
-        .stdin(Stdio::piped())
+        .arg("--registry")
+        .arg("fixtures/sample/registry.json")
+        .arg("--fail-on-warnings")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()
-        .expect("validate should spawn");
-
-    child
-        .stdin
-        .as_mut()
-        .expect("stdin should be available")
-        .write_all(br#"{"registry_path":"fixtures/sample/registry.json","fail_on_warnings":true}"#)
-        .expect("stdin write should succeed");
-
-    let output = child.wait_with_output().expect("process should complete");
+        .output()
+        .expect("validate should run");
     assert!(!output.status.success(), "process should fail on warnings");
 }

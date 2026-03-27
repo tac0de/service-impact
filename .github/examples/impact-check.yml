@@ -14,17 +14,12 @@ jobs:
         run: git diff --name-only origin/${{ github.base_ref }}...HEAD > changed_paths.txt
 
       - name: Validate registry
-        run: |
-          echo '{
-            "registry_path": "registry.json",
-            "fail_on_warnings": true
-          }' | cargo run --bin service-impact -- validate
+        run: cargo run --bin service-impact -- validate --registry registry.json --fail-on-warnings
 
       - name: Compute impact
-        run: |
-          echo '{
-            "registry_path": "registry.json",
-            "service_id": "api",
-            "changed_paths_file": "changed_paths.txt",
-            "mode": "conservative"
-          }' | cargo run --bin service-impact -- impact
+        run: >
+          cargo run --bin service-impact -- impact
+          --registry registry.json
+          --service api
+          --changed-paths-file changed_paths.txt
+          --mode conservative

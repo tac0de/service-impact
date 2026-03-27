@@ -37,9 +37,9 @@ Early release, current scope:
 Three-line usage:
 
 ```bash
-echo '{"registry_path":"registry.json","fail_on_warnings":true}' | cargo run --bin service-impact -- validate
-echo '{"registry_path":"registry.json","service_id":"api","changed_paths_file":"changed_paths.txt","mode":"conservative"}' | cargo run --bin service-impact -- impact
-echo '{"registry_path":"registry.json","service_id":"api","changed_paths_file":"changed_paths.txt","mode":"strict"}' | cargo run --bin service-impact -- plan
+cargo run --bin service-impact -- validate --registry registry.json --fail-on-warnings
+cargo run --bin service-impact -- impact --registry registry.json --service api --changed-paths-file changed_paths.txt --mode conservative
+cargo run --bin service-impact -- plan --registry registry.json --service api --changed-paths-file changed_paths.txt --mode strict
 ```
 
 Good fit:
@@ -63,28 +63,24 @@ Not trying to be:
 git clone https://github.com/tac0de/service-impact.git
 cd service-impact
 cargo test
-echo '{"registry_path":"fixtures/sample/registry.json"}' | cargo run --bin service-impact -- validate
+cargo run --bin service-impact -- validate --registry fixtures/sample/registry.json
 ```
 
 2. Point it at your own registry and changed paths.
 
 ```bash
 git diff --name-only origin/main...HEAD > changed_paths.txt
-echo '{
-  "registry_path": "registry.json",
-  "service_id": "api",
-  "changed_paths_file": "changed_paths.txt",
-  "mode": "conservative"
-}' | cargo run --bin service-impact -- impact
+cargo run --bin service-impact -- impact \
+  --registry registry.json \
+  --service api \
+  --changed-paths-file changed_paths.txt \
+  --mode conservative
 ```
 
 3. If you want CI-style validation, fail on warnings too.
 
 ```bash
-echo '{
-  "registry_path": "registry.json",
-  "fail_on_warnings": true
-}' | cargo run --bin service-impact -- validate
+cargo run --bin service-impact -- validate --registry registry.json --fail-on-warnings
 ```
 
 More setup help:
@@ -156,7 +152,9 @@ They start breaking down when:
 
 ## Install
 
-Clone the repo:
+If you do not have Rust installed, download a prebuilt binary from the GitHub Releases page when a tagged release is available.
+
+If you want to build locally, clone the repo:
 
 ```bash
 git clone https://github.com/tac0de/service-impact.git
@@ -172,7 +170,7 @@ cargo test
 Run the CLI without installing globally:
 
 ```bash
-cargo run --bin service-impact -- impact
+cargo run --bin service-impact -- --help
 ```
 
 If you want the CLI binary on your machine:
@@ -250,25 +248,24 @@ cargo run --example basic
 Try the starter example:
 
 ```bash
-echo '{"registry_path":"examples/real-repo-starter/registry.json"}' | cargo run --bin service-impact -- validate
-echo '{
-  "registry_path": "examples/real-repo-starter/registry.json",
-  "service_id": "api",
-  "changed_paths_file": "examples/real-repo-starter/changed_paths.txt",
-  "mode": "strict"
-}' | cargo run --bin service-impact -- impact
+cargo run --bin service-impact -- validate --registry examples/real-repo-starter/registry.json
+cargo run --bin service-impact -- impact \
+  --registry examples/real-repo-starter/registry.json \
+  --service api \
+  --changed-paths-file examples/real-repo-starter/changed_paths.txt \
+  --mode strict
 ```
 
 Validate the sample registry:
 
 ```bash
-echo '{"registry_path":"fixtures/sample/registry.json"}' | cargo run --bin service-impact -- validate
+cargo run --bin service-impact -- validate --registry fixtures/sample/registry.json
 ```
 
 Fail CI when warnings should be treated as errors:
 
 ```bash
-echo '{"registry_path":"fixtures/sample/registry.json","fail_on_warnings":true}' | cargo run --bin service-impact -- validate
+cargo run --bin service-impact -- validate --registry fixtures/sample/registry.json --fail-on-warnings
 ```
 
 ## How It Works
@@ -307,44 +304,40 @@ You can choose an analysis mode:
 Impact query:
 
 ```bash
-echo '{
-  "registry_path": "fixtures/sample/registry.json",
-  "service_id": "billing-api",
-  "changed_paths": ["src/http/router.rs"],
-  "mode": "conservative"
-}' | cargo run --bin service-impact -- impact
+cargo run --bin service-impact -- impact \
+  --registry fixtures/sample/registry.json \
+  --service billing-api \
+  --changed-path src/http/router.rs \
+  --mode conservative
 ```
 
 Verification plan:
 
 ```bash
-echo '{
-  "registry_path": "fixtures/sample/registry.json",
-  "service_id": "billing-api",
-  "changed_paths": ["src/events/publisher.rs"],
-  "mode": "strict"
-}' | cargo run --bin service-impact -- plan
+cargo run --bin service-impact -- plan \
+  --registry fixtures/sample/registry.json \
+  --service billing-api \
+  --changed-path src/events/publisher.rs \
+  --mode strict
 ```
 
 Use changed paths from a file:
 
 ```bash
 echo "src/http/router.rs" > changed_paths.txt
-echo '{
-  "registry_path": "fixtures/sample/registry.json",
-  "service_id": "billing-api",
-  "changed_paths_file": "changed_paths.txt"
-}' | cargo run --bin service-impact -- impact
+cargo run --bin service-impact -- impact \
+  --registry fixtures/sample/registry.json \
+  --service billing-api \
+  --changed-paths-file changed_paths.txt
 ```
 
 Use changed paths from git diff:
 
 ```bash
-echo '{
-  "registry_path": "fixtures/sample/registry.json",
-  "service_id": "billing-api",
-  "git_diff_range": "HEAD~1..HEAD"
-}' | cargo run --bin service-impact -- impact
+cargo run --bin service-impact -- impact \
+  --registry fixtures/sample/registry.json \
+  --service billing-api \
+  --git-diff-range HEAD~1..HEAD
 ```
 
 Example output fields:
@@ -448,7 +441,7 @@ Current checked-in benchmark is still a sample corpus intended to show the workf
 Replay the sample corpus:
 
 ```bash
-cargo run --bin replay-bench -- fixtures/sample/registry.json fixtures/replay/cases.json
+cargo run --bin replay-bench -- --registry fixtures/sample/registry.json --replay fixtures/replay/cases.json
 ```
 
 Current sample output:
@@ -517,12 +510,11 @@ Instead of always running everything:
 
 - name: Compute impact
   run: |
-    echo '{
-      "registry_path": "registry.json",
-      "service_id": "billing-api",
-      "changed_paths_file": "changed_paths.txt",
-      "mode": "conservative"
-    }' | cargo run --bin service-impact -- impact
+    cargo run --bin service-impact -- impact \
+      --registry registry.json \
+      --service billing-api \
+      --changed-paths-file changed_paths.txt \
+      --mode conservative
 ```
 
 ### 2. PR impact preview
