@@ -1,0 +1,66 @@
+{
+  "services": [
+    {
+      "service_id": "api",
+      "provides": [
+        {
+          "kind": "http",
+          "name": "orders",
+          "paths": ["services/api/src/http", "services/api/src/orders"]
+        },
+        {
+          "kind": "event",
+          "name": "order-created",
+          "paths": ["services/api/src/events"]
+        }
+      ],
+      "consumes": [],
+      "depends_on": [],
+      "verification_hooks": [
+        {
+          "name": "api-test",
+          "trigger": "impact",
+          "command": "cargo test -p api"
+        }
+      ]
+    },
+    {
+      "service_id": "worker",
+      "provides": [],
+      "consumes": [
+        {
+          "service_id": "api",
+          "kind": "event",
+          "name": "order-created"
+        }
+      ],
+      "depends_on": ["api"],
+      "verification_hooks": [
+        {
+          "name": "worker-smoke",
+          "trigger": "impact",
+          "command": "cargo test -p worker smoke"
+        }
+      ]
+    },
+    {
+      "service_id": "web",
+      "provides": [],
+      "consumes": [
+        {
+          "service_id": "api",
+          "kind": "http",
+          "name": "orders"
+        }
+      ],
+      "depends_on": ["api"],
+      "verification_hooks": [
+        {
+          "name": "web-e2e",
+          "trigger": "impact",
+          "command": "pnpm test:e2e"
+        }
+      ]
+    }
+  ]
+}

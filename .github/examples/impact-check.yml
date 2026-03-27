@@ -1,0 +1,30 @@
+name: service-impact-example
+
+on:
+  pull_request:
+
+jobs:
+  impact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Collect changed paths
+        run: git diff --name-only origin/${{ github.base_ref }}...HEAD > changed_paths.txt
+
+      - name: Validate registry
+        run: |
+          echo '{
+            "registry_path": "registry.json",
+            "fail_on_warnings": true
+          }' | cargo run --bin service-impact -- validate
+
+      - name: Compute impact
+        run: |
+          echo '{
+            "registry_path": "registry.json",
+            "service_id": "api",
+            "changed_paths_file": "changed_paths.txt",
+            "mode": "conservative"
+          }' | cargo run --bin service-impact -- impact

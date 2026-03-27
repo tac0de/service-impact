@@ -1,0 +1,29 @@
+name: False positive or false negative
+description: Report an impact result that looks wrong.
+title: "[signal] "
+labels: ["signal"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the mismatch between expected and actual impact.
+    validations:
+      required: true
+  - type: input
+    id: mode
+    attributes:
+      label: Analysis mode
+      placeholder: strict or conservative
+  - type: textarea
+    id: changed_paths
+    attributes:
+      label: Changed paths
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected impacted services
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual impacted services

@@ -1,0 +1,19 @@
+name: Registry modeling question
+description: Ask how to represent a service graph or verification hooks.
+title: "[registry] "
+labels: ["registry"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to model?
+    validations:
+      required: true
+  - type: textarea
+    id: services
+    attributes:
+      label: Services involved
+  - type: textarea
+    id: question
+    attributes:
+      label: Where are you stuck?

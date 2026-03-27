@@ -1,0 +1,6 @@
+{
+  "service_id": "api",
+  "changed_paths": ["services/api/src/events/publisher.rs"],
+  "impacted_services": ["worker"],
+  "notes": "Strict mode should target the event consumer only."
+}

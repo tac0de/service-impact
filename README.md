@@ -27,6 +27,20 @@ changed files -> impacted services -> required checks only
 
 Instead of rerunning broad default CI scope, it helps you narrow to the smallest reasonable set of services and checks.
 
+Early release:
+
+- sample replay benchmark included
+- real-history replay export included
+- larger production replay corpus is still the next step
+
+Three-line usage:
+
+```bash
+echo '{"registry_path":"registry.json","fail_on_warnings":true}' | cargo run --bin service-impact -- validate
+echo '{"registry_path":"registry.json","service_id":"api","changed_paths_file":"changed_paths.txt","mode":"conservative"}' | cargo run --bin service-impact -- impact
+echo '{"registry_path":"registry.json","service_id":"api","changed_paths_file":"changed_paths.txt","mode":"strict"}' | cargo run --bin service-impact -- plan
+```
+
 Good fit:
 
 - platform teams
@@ -75,6 +89,11 @@ echo '{
 More setup help:
 - see the sections below in this README
 
+Quick repo assets:
+
+- starter example: [`examples/real-repo-starter`](examples/real-repo-starter)
+- GitHub Actions example: [`.github/examples/impact-check.yml`](.github/examples/impact-check.yml)
+
 ## What This Actually Helps With
 
 If you have multiple services, packages, or deployable units, you usually hit one of these problems:
@@ -120,6 +139,19 @@ It is a good fit for:
 | Changed-file impact analysis | Rough | Yes |
 | Verification hook planning | No | Yes |
 | Replayable benchmark output | Rare | Yes |
+
+## Why Not Just Use Path Globs?
+
+Path-glob rules are often fine at first.
+
+They start breaking down when:
+
+- dependencies cross directories
+- one service provides multiple capabilities
+- verification ownership is not path-local
+- different downstream consumers need different checks
+
+`service-impact` is useful when you want the dependency logic to live in an explicit manifest instead of being spread across CI conditionals.
 
 ## Install
 
@@ -185,6 +217,12 @@ Current public evidence level:
 - real-history replay export tooling is included
 - the repo does not yet claim a large production replay set
 
+If you want to help shape the tool:
+
+- use-case feedback: open a `use-case` issue
+- registry modeling question: open a `registry` issue
+- false positive / false negative report: open a `signal` issue
+
 ## Quickstart
 
 ```rust
@@ -204,6 +242,18 @@ Run the example:
 
 ```bash
 cargo run --example basic
+```
+
+Try the starter example:
+
+```bash
+echo '{"registry_path":"examples/real-repo-starter/registry.json"}' | cargo run --bin service-impact -- validate
+echo '{
+  "registry_path": "examples/real-repo-starter/registry.json",
+  "service_id": "api",
+  "changed_paths_file": "examples/real-repo-starter/changed_paths.txt",
+  "mode": "strict"
+}' | cargo run --bin service-impact -- impact
 ```
 
 Validate the sample registry:

@@ -1,0 +1,20 @@
+name: Use case / feedback
+description: Share how you would use service-impact or what would make it useful.
+title: "[use-case] "
+labels: ["use-case"]
+body:
+  - type: textarea
+    id: team
+    attributes:
+      label: Team or repo shape
+      description: monorepo, linked services, CI pain, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Current workflow
+  - type: textarea
+    id: desired
+    attributes:
+      label: What outcome would be valuable?

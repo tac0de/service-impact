@@ -1,0 +1,21 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: Features
+      labels:
+        - enhancement
+        - feature
+    - title: Fixes
+      labels:
+        - bug
+        - fix
+    - title: Registry and Validation
+      labels:
+        - registry
+        - signal
+    - title: Docs and Examples
+      labels:
+        - docs
+        - use-case
